@@ -24,6 +24,7 @@ m4_define([libavcodec_version],         [53.35.0])
 m4_define([va_api_version],             [0.30.4])
 m4_define([va_api_drm_version],         [0.33.0])
 m4_define([va_api_x11_version],         [0.31.0])
+m4_define([va_api_wayland_version],     [0.31.0])
 
 # libva package version number
 m4_define([libva_drm_package_version],  [1.1.0])
@@ -117,9 +118,11 @@ case "$FFVA_RENDERER" in
     egl)        FFVA_RENDERER="${FFVA_RENDERER}_${DEFAULT_RENDERER}";;
 esac
 case "$FFVA_RENDERER" in
-    drm)        FFVA_RENDERER_NAME="DRM";;
-    x11)        FFVA_RENDERER_NAME="X11";;
-    egl_x11)    FFVA_RENDERER_NAME="EGL/X11";;
+    drm)            FFVA_RENDERER_NAME="DRM";;
+    x11)            FFVA_RENDERER_NAME="X11";;
+    wayland)        FFVA_RENDERER_NAME="WAYLAND";;
+    egl_x11)        FFVA_RENDERER_NAME="EGL/X11";;
+    egl_wayland)    FFVA_RENDERER_NAME="EGL/WAYLAND";;
     *) AC_MSG_ERROR([Unsupported renderer $FFVA_RENDERER]);;
 esac
 AC_SUBST([FFVA_RENDERER])
@@ -155,6 +158,22 @@ esac
 AC_DEFINE_UNQUOTED([USE_X11], [$USE_X11],
     [Defined to 1 if X11 renderer is enabled])
 AM_CONDITIONAL([USE_X11], [test $USE_X11 -eq 1])
+
+dnl Check for WAYLAND
+USE_WAYLAND=0
+case "$FFVA_RENDERER" in
+(*wayland*)
+    PKG_CHECK_MODULES([WAYLAND], [wayland-client])
+    saved_CPPFLAGS="$CPPFLAGS"
+    CPPFLAGS="$CPPFLAGS $WAYLAND_CFLAGS"
+    AC_CHECK_HEADERS([wayland-client.h],
+        [USE_WAYLAND=1], [AC_MSG_ERROR([incomplete libwayland-dev (headers) package])])
+    CPPFLAGS="$saved_CPPFLAGS"
+    ;;
+esac
+AC_DEFINE_UNQUOTED([USE_WAYLAND], [$USE_WAYLAND],
+    [Defined to 1 if WAYLAND renderer is enabled])
+AM_CONDITIONAL([USE_WAYLAND], [test $USE_WAYLAND -eq 1])
 
 dnl Check for EGL
 USE_EGL=0
@@ -295,6 +314,20 @@ fi
 AC_DEFINE_UNQUOTED([USE_VA_X11], [$USE_VA_X11],
     [Defined to 1 if libva (X11) backend is enabled])
 AM_CONDITIONAL([USE_VA_X11], [test $USE_VA_X11 -eq 1])
+
+dnl VA/WAYLAND API
+USE_VA_WAYLAND=0
+if test $USE_WAYLAND -eq 1; then
+    PKG_CHECK_MODULES([LIBVA_WAYLAND], [libva-wayland >= va_api_wayland_version])
+    saved_CPPFLAGS="$CPPFLAGS"
+    CPPFLAGS="$LIBVA_WAYLAND_CFLAGS"
+    AC_CHECK_HEADERS([va/va_wayland.h], [USE_VA_WAYLAND=1],
+        [AC_MSG_ERROR([incomplete libva-dev (headers) package])])
+    CPPFLAGS="$saved_CPPFLAGS"
+fi
+AC_DEFINE_UNQUOTED([USE_VA_WAYLAND], [$USE_VA_WAYLAND],
+    [Defined to 1 if libva (WAYLAND) backend is enabled])
+AM_CONDITIONAL([USE_VA_WAYLAND], [test $USE_VA_WAYLAND -eq 1])
 
 dnl Check for vpp (video post-processing) support
 USE_VA_VPP=0

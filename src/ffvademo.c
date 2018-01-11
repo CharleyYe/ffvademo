@@ -3,6 +3,8 @@
  *
  * Copyright (C) 2014 Intel Corporation
  *   Author: Gwenole Beauchesne <gwenole.beauchesne@intel.com>
+ * Copyright (C) 2018 Sony Corporation
+ *   Author: Chenglin Ye <chenglin.ye@sony.com>
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -39,6 +41,9 @@
 #if USE_X11
 # include "ffvarenderer_x11.h"
 #endif
+#if USE_WAYLAND
+# include "ffvarenderer_wayland.h"
+#endif
 #if USE_EGL
 # include "ffvarenderer_egl.h"
 #endif
@@ -53,6 +58,9 @@
 #endif
 #if USE_X11
 #define DEFAULT_RENDERER FFVA_RENDERER_TYPE_X11
+#endif
+#if USE_WAYLAND
+#define DEFAULT_RENDERER FFVA_RENDERER_TYPE_WAYLAND
 #endif
 #ifndef DEFAULT_RENDERER
 #define DEFAULT_RENDERER FFVA_RENDERER_TYPE_EGL
@@ -107,6 +115,8 @@ static const AVOption app_options[] = {
     { "drm", "DRM", 0, AV_OPT_TYPE_CONST, { .i64 = FFVA_RENDERER_TYPE_DRM },
       0, 0, 0, "renderer" },
     { "x11", "X11", 0, AV_OPT_TYPE_CONST, { .i64 = FFVA_RENDERER_TYPE_X11 },
+      0, 0, 0, "renderer" },
+    { "wayland", "WAYLAND", 0, AV_OPT_TYPE_CONST, { .i64 = FFVA_RENDERER_TYPE_WAYLAND },
       0, 0, 0, "renderer" },
     { "egl", "EGL", 0, AV_OPT_TYPE_CONST, { .i64 = FFVA_RENDERER_TYPE_EGL },
       0, 0, 0, "renderer" },
@@ -321,6 +331,11 @@ app_ensure_renderer(App *app)
 #if USE_X11
         case FFVA_RENDERER_TYPE_X11:
             app->renderer = ffva_renderer_x11_new(app->display, flags);
+            break;
+#endif
+#if USE_WAYLAND
+        case FFVA_RENDERER_TYPE_WAYLAND:
+            app->renderer = ffva_renderer_wayland_new(app->display, flags);
             break;
 #endif
 #if USE_EGL

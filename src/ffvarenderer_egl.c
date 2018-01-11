@@ -3,6 +3,8 @@
  *
  * Copyright (C) 2014 Intel Corporation
  *   Author: Gwenole Beauchesne <gwenole.beauchesne@intel.com>
+ * Copyright (C) 2018 Sony Corporation
+ *   Author: Chenglin Ye <chenglin.ye@sony.com>
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -484,6 +486,11 @@ ensure_native_renderer(FFVARendererEGL *rnd, uint32_t flags)
             native_renderer = ffva_renderer_x11_new(display, 0);
             break;
 #endif
+#if USE_WAYLAND
+		case FFVA_DISPLAY_TYPE_WAYLAND:
+			native_renderer = ffva_renderer_wayland_new(display, 0);
+			break;
+#endif
         }
         if (!native_renderer)
             return false;
@@ -542,7 +549,7 @@ ensure_vtable(FFVARendererEGL *rnd)
     int i;
 
     static const char *egl_extensions_required[] = {
-        "EGL_KHR_image_pixmap",
+//        "EGL_KHR_image_pixmap",
         "EGL_KHR_image_base",
         "EGL_EXT_image_dma_buf_import",
         "EGL_KHR_gl_texture_2D_image",
@@ -640,6 +647,7 @@ ensure_config(FFVARendererEGL *rnd)
         egl->config = config;
     }
 
+#if USE_X11
     if (!egl->visualid) {
         if (!eglGetConfigAttrib(egl->display, config, EGL_NATIVE_VISUAL_ID,
                 &vid))
@@ -647,6 +655,9 @@ ensure_config(FFVARendererEGL *rnd)
         egl->visualid = vid;
     }
     return egl->visualid;
+#else
+    return true;
+#endif
 
     /* ERRORS */
 error_choose_config:
@@ -665,6 +676,10 @@ ensure_context(FFVARendererEGL *rnd)
 
     if (!ensure_native_renderer(rnd, 0))
         return false;
+#if USE_WAYLAND
+    if (!ensure_config(rnd))
+        return false;
+#endif
 
     eglBindAPI(OPENGL_API);
 

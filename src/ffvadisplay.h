@@ -3,6 +3,8 @@
  *
  * Copyright (C) 2014 Intel Corporation
  *   Author: Gwenole Beauchesne <gwenole.beauchesne@intel.com>
+ * Copyright (C) 2018 Sony Corporation
+ *   Author: Chenglin Ye <chenglin.ye@sony.com>
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -30,6 +32,7 @@ typedef struct ffva_display_s           FFVADisplay;
 typedef enum {
     FFVA_DISPLAY_TYPE_X11 = 1,
     FFVA_DISPLAY_TYPE_DRM,
+    FFVA_DISPLAY_TYPE_WAYLAND,
 } FFVADisplayType;
 
 /** Creates a new display object and opens a connection to the native display */

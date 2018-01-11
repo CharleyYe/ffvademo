@@ -1,8 +1,10 @@
 /*
- * ffvarenderer_x11.h - VA/X11 renderer
+ * ffvarenderer_x11.c - VA/X11 renderer
  *
  * Copyright (C) 2014 Intel Corporation
  *   Author: Gwenole Beauchesne <gwenole.beauchesne@intel.com>
+ * Copyright (C) 2018 Sony Corporation
+ *   Author: Chenglin Ye <chenglin.ye@sony.com>
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
