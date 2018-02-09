@@ -3,6 +3,8 @@
  *
  * Copyright (C) 2014 Intel Corporation
  *   Author: Gwenole Beauchesne <gwenole.beauchesne@intel.com>
+ * Copyright (C) 2018 Sony Corporation
+ *   Author: Chenglin Ye <chenglin.ye@sony.com>
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -180,6 +182,64 @@ ffva_display_x11_class(void)
 #endif
 
 /* ------------------------------------------------------------------------ */
+/* --- WAYLAND Display                                                      --- */
+/* ------------------------------------------------------------------------ */
+
+#if USE_VA_WAYLAND
+#include <va/va_wayland.h>
+
+typedef struct {
+    FFVADisplay base;
+} FFVADisplayWAYLAND;
+
+static bool
+ffva_display_wayland_open(FFVADisplayWAYLAND *display)
+{
+    FFVADisplay * const base_display = (FFVADisplay*)display;
+
+    base_display->native_display = wl_display_connect(base_display->display_name);
+    if (!base_display->native_display)
+        goto error_open_display;
+
+    base_display->va_display = vaGetDisplayWl(base_display->native_display);
+    return true;
+
+    /* ERRORS */
+error_open_display:
+    av_log(display, AV_LOG_ERROR, "failed to open display `%s'\n",
+        base_display->display_name);
+    return false;
+}
+
+static void
+ffva_display_wayland_close(FFVADisplayWAYLAND *display)
+{
+    FFVADisplay * const base_display = (FFVADisplay*)display;
+
+    if (base_display->native_display)
+        wl_display_disconnect(base_display->native_display);
+}
+
+static const FFVADisplayClass *
+ffva_display_wayland_class(void)
+{
+    static const FFVADisplayClass g_class = {
+        .base = {
+            .class_name = "FFVADisplayWAYLAND",
+            .item_name  = av_default_item_name,
+            .option     = NULL,
+            .version    = LIBAVUTIL_VERSION_INT,
+        },
+        .size           = sizeof(FFVADisplayWAYLAND),
+        .type           = FFVA_DISPLAY_TYPE_WAYLAND,
+        .open           = (FFVADisplayOpenFunc)ffva_display_wayland_open,
+        .close          = (FFVADisplayCloseFunc)ffva_display_wayland_close,
+    };
+    return &g_class;
+}
+#endif
+
+/* ------------------------------------------------------------------------ */
 /* --- Interface                                                        --- */
 /* ------------------------------------------------------------------------ */
 
@@ -191,6 +251,9 @@ ffva_display_class(void)
 #endif
 #if USE_VA_X11
     return ffva_display_x11_class();
+#endif
+#if USE_VA_WAYLAND
+		return ffva_display_wayland_class();
 #endif
     assert(0 && "unsupported VA backend");
     return NULL;

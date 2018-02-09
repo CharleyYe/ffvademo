@@ -24,6 +24,7 @@ libffva_libs = \
 	$(FFMPEG_LIBS)		\
 	$(LIBVA_LIBS)		\
 	-lpthread		\
+	-lwayland-egl		\
 	$(NULL)
 
 libffva_source_c = \
@@ -57,6 +58,8 @@ libffva_source_x11_c = ffvarenderer_x11.c
 libffva_source_x11_h = ffvarenderer_x11.h
 libffva_source_egl_c = ffvarenderer_egl.c
 libffva_source_egl_h = ffvarenderer_egl.h
+libffva_source_wayland_c = ffvarenderer_wayland.c
+libffva_source_wayland_h = ffvarenderer_waylan.h
 
 if USE_DRM
 libffva_source_c		+= $(libffva_source_drm_c)
@@ -79,6 +82,13 @@ libffva_cflags			+= $(EGL_CFLAGS) $(GLAPI_CFLAGS)
 libffva_libs			+= $(EGL_LIBS) $(GLAPI_LIBS)
 endif
 
+if USE_WAYLAND
+libffva_source_c		+= $(libffva_source_wayland_c)
+libffva_source_h		+= $(libffva_source_wayland_h)
+libffva_cflags			+= $(LIBVA_WAYLAND_CFLAGS) $(WAYLAND_CFLAGS)
+libffva_libs			+= $(LIBVA_WAYLAND_LIBS) $(WAYLAND_LIBS)
+endif
+
 libffva_la_SOURCES		= $(libffva_source_c)
 libffva_la_CFLAGS		= $(libffva_cflags)
 libffva_la_LIBADD		= $(libffva_libs)
@@ -97,6 +107,8 @@ EXTRA_DIST = \
 	$(libffva_source_x11_h)	\
 	$(libffva_source_egl_c)	\
 	$(libffva_source_egl_h)	\
+	$(libffva_source_wayland_c)	\
+	$(libffva_source_wayland_h)	\
 	$(NULL)
 
 # Extra clean files so that maintainer-clean removes *everything*
