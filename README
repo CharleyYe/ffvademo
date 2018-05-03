@@ -26,6 +26,7 @@ Features
   * FFmpeg decoder with VA-API support
   * Native X11 renderer through vaPutSurface()
   * EGL renderer showing off VA/EGL interop capabilities
+  * WAYLAND renderer support through EGL
 
 Non-goals
 
